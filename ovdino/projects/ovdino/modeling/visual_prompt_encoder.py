@@ -59,7 +59,7 @@ class VisualPromptEncoder(nn.Module):
         last_layer_feature = features[-1]
 
         # Resize the feature map to a fixed resolution (e.g., 640x640)
-        resized_feature = F.interpolate(last_layer_feature, size=(640, 640), mode="bilinear", align_corners=False)
+        resized_feature = F.interpolate(last_layer_feature, size=(100, 100), mode="bilinear", align_corners=False)
         resized_height, resized_width = resized_feature.shape[-2:]
 
         # Initialize batch-specific averaged features
@@ -109,34 +109,16 @@ class VisualPromptEncoder(nn.Module):
 
             # Average feature maps that belong to the same ground truth class
             averaged_features = [torch.zeros(resized_feature.shape[1], device=resized_feature.device) for _ in range(80)]
-
             for cls, maps in class_feature_map_dict.items():
                 if maps:
                     averaged_features[cls] = torch.stack(maps).mean(dim=0)
                 else:
                     if self.training:
-                        # Sample negative feature map from regions outside ground-truth boxes
-                        while True:
-                            # Randomly choose a box size between 5x5 and 30x30
-                            negative_height = torch.randint(5, 31, (1,)).item()  # Random height from 5 to 30
-                            negative_width = torch.randint(5, 31, (1,)).item()   # Random width from 5 to 30
-
-                            # Ensure the sampled box fits within the image dimensions
-                            random_y = torch.randint(0, resized_height - negative_height + 1, (1,)).item()
-                            random_x = torch.randint(0, resized_width - negative_width + 1, (1,)).item()
-
-                            # Check if the randomly chosen area overlaps with any positive regions
-                            negative_box_mask = torch.zeros((resized_height, resized_width), dtype=torch.bool, device=resized_feature.device)
-                            negative_box_mask[random_y:random_y+negative_height, random_x:random_x+negative_width] = True
-
-                            if not (positive_mask & negative_box_mask).any():  # No overlap
-                                break
-
-                        # Extract negative feature map
-                        negative_sample = resized_feature[batch_idx:batch_idx+1, :, random_y:random_y+negative_height, random_x:random_x+negative_width].squeeze()
-
-                        # Average the negative feature map to match the required output shape
-                        averaged_features[cls] = F.adaptive_avg_pool2d(negative_sample.unsqueeze(0), (1, 1)).squeeze()
+                         # Sample negative feature map from last_layer_feature
+                        random_y = torch.randint(0, resized_height, (1,))
+                        random_x = torch.randint(0, resized_width, (1,))
+                        negative_sample = resized_feature[batch_idx:batch_idx+1, :, random_y, random_x].squeeze()
+                        averaged_features[cls] = negative_sample
 
             # Add batch-specific averaged features to the list
             batched_averaged_features.append(torch.stack(averaged_features))

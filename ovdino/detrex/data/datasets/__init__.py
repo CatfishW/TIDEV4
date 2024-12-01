@@ -18,7 +18,7 @@
 
 from . import (
     register_coco_ovd,
-    # register_custom_ovd,
+    register_custom_ovd,
     register_lvis_ovd,
     register_o365_ovd,
 )

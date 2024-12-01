@@ -24,13 +24,13 @@ dataloader = OmegaConf.create()
 #     },  # key: dataset_id, value: contiguous_id
 #     "thing_classes": ["category_0", "category_1"],  # category names
 # }
-# # 2. Register custom train dataset.
+# 2. Register custom train dataset.
 # register_custom_ovd_instances(
 #     "custom_train_ovd_unipro",  # dataset_name
 #     meta_info,
 #     "/path/to/train.json",  # annotations_json_file
 #     "/path/to/train/images",  # image_root
-#     2,  # number_of_classes, default: 2. You also need to change model.num_classes in the ovdino/projects/ovdino/configs/ovdino_swin_tiny224_bert_base_ft_custom_24ep.py#L37.
+#     599,  # number_of_classes, default: 2. You also need to change model.num_classes in the ovdino/projects/ovdino/configs/ovdino_swin_tiny224_bert_base_ft_custom_24ep.py#L37.
 #     "full",  # template, default: full
 # )
 # # 3. Register custom val dataset.

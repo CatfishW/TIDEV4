@@ -117,7 +117,7 @@ model = L(OVDINO)(
     box_noise_scale=1.0,
     pixel_mean=[123.675, 116.280, 103.530],
     pixel_std=[58.395, 57.120, 57.375],
-    vis_period=500,
+    vis_period=0,
     input_format="RGB",
     device="cuda",
 )

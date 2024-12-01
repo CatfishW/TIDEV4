@@ -8,21 +8,21 @@ from .models.ovdino_swin_tiny224_bert_base import model
 # model_root = os.getenv("MODEL_ROOT", "./inits")
 # init_checkpoint = osp.join(model_root, "./swin", "swin_tiny_patch4_window7_224.pth")
 #init_checkpoint = '/root/workspace/ZladWu/OV-DINO/ovdino/ovdino_swint_ogc-coco50.2_lvismv40.1_lvis32.9.pth'
-init_checkpoint ='model_final.pth'#'/root/workspace/ZladWu/OV-DINO/ovdino/wkdrs/ovdino_swin_tiny224_bert_base_24ep_text_visual_hybrid/model_final.pth'
+init_checkpoint ='/root/workspace/ZladWu/OV-DINO/ovdino/wkdrs/ovdino_swin_tiny224_bert_base_24ep_text_visual_hybrid/model_final.pth'
 # get default config
-dataloader = get_config("common/data/coco_ovd.py").dataloader
+dataloader = get_config("common/data/custom_ovd.py").dataloader#get_config("common/data/coco_ovd.py").dataloader
 optimizer = get_config("common/optim.py").AdamW
 lr_multiplier = get_config("common/coco_schedule.py").lr_multiplier_12ep
 train = get_config("common/train.py").train
 
 # modify training config
 train.init_checkpoint = init_checkpoint
-train.output_dir = "./wkdrs/ovdino_swin_tiny224_bert_base_24ep_text_visual_hybrid"
+train.output_dir = "./wkdrs/ovdino_swin_tiny224_bert_base_24ep_text_visual_hybrid_openimages1500K"
 
 # max training iterations
 train.max_iter = 90000
 train.eval_period = 5000
-train.log_period = 0
+train.log_period = 50
 train.checkpointer.period = 5000
 
 # gradient clipping for training
@@ -35,7 +35,7 @@ train.device = "cuda"
 train.find_unused_parameters = True
 model.device = train.device
 model.inference_template = "full"
-model.num_classes = 80
+model.num_classes = 599
 
 
 # modify optimizer config
@@ -52,7 +52,7 @@ dataloader.train.num_workers = 16
 # please notice that this is total batch size.
 # surpose you're using 4 gpus for training and the batch size for
 # each gpu is 16/4 = 4
-dataloader.train.total_batch_size = 12
+dataloader.train.total_batch_size = 15
 
 # dump the testing results into output_dir for visualization
 dataloader.evaluator.output_dir = train.output_dir

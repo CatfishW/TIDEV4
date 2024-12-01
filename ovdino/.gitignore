@@ -18,7 +18,7 @@ ovdino/datasets/
 wkdrs/
 ovdino/bert-base-uncased/
 bert-base-uncased/
-
+datasets/
 # Distribution / packaging
 .Python
 build/
