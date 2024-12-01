@@ -246,11 +246,20 @@ class OVDINO(nn.Module):
         elif not self.training and names[0] is not None:
             visual_text_switcher = 1
         elif not self.training and names[0] is None and batched_inputs[0].get("instances", None) is not None:
+            visual_text_switcher = 0
             visual_embed = self.visual_prompt_encoder._process_feature_map([features['p3']], batched_inputs)
+        elif not self.training and batched_inputs[0].get("visual_embeds", None) is not None:
+            print("Performing Cross Image Prompting...")
+            visual_text_switcher = 0
+            visual_embed = batched_inputs[0].get("visual_embeds", None)
         else:
-            print('Neither visual prompt instances nor text prompts found, using null text embeddings')
+            print('Neither visual prompt instances nor text prompts found, using null text embeddings...')
             visual_text_switcher = 1
             text_embed = torch.zeros(batch_size,1,768).to(self.device)
+        visual_extraction_mode = batched_inputs[0].get("visual_feature_extraction_mode", None)
+        if visual_extraction_mode is not None and visual_extraction_mode == True:
+            print("Performing Cross Image Embedding Extraction...")
+            return visual_embed
         # project backbone features to the reuired dimension of transformer
         # we use multi-scale features in DINO
         multi_level_feats = self.neck(features)

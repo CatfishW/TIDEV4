@@ -16,9 +16,10 @@ sys.path.insert(0, "./")  # noqa
 from demo.predictors import OVDINODemo
 from detectron2.checkpoint import DetectionCheckpointer
 from detectron2.config import LazyConfig, instantiate
-from detectron2.data.detection_utils import read_image
+from detectron2.data.detection_utils import read_image,annotations_to_instances
 from detectron2.utils.logger import setup_logger
 from detrex.data.datasets import clean_words_or_phrase
+from tools.crop_image import annotate_image_with_detectron2
 
 try:
     from sam2.build_sam import build_sam2
@@ -72,6 +73,12 @@ def get_parser():
         "or a single glob pattern such as 'directory/*.jpg'",
     )
     parser.add_argument(
+        "--cross_prompt_image",
+        nargs="+",
+        help="A list of space separated prompt images; "
+        "or a single glob pattern such as 'directory/*.jpg'",
+    )
+    parser.add_argument(
         "--category_names", nargs="+", help="A list of sapce separete category names"
     )
     parser.add_argument(
@@ -106,7 +113,7 @@ def get_parser():
     parser.add_argument(
         "--confidence-threshold",
         type=float,
-        default=0.4,
+        default=0.39,
         help="Minimum score for instance predictions to be shown",
     )
     parser.add_argument(
@@ -146,8 +153,9 @@ if __name__ == "__main__":
 
     cfg = setup(args)
     #args.category_names = "car tree building"
-    args.input = ["/root/workspace/ZladWu/OV-DINO/ovdino/demo/imgs/000000001584.jpg"]
-    args.output = "/root/workspace/ZladWu/OV-DINO/ovdino/demo/imgs/output"
+    args.input = ["demo/imgs/000000001584.jpg"]
+    args.cross_prompt_image = ["demo/imgs/bus_prompt4.jpg"]
+    args.output = "demo/imgs/output"
     category_names = None#['car','bus','person','dog']
     model = instantiate(cfg.model)
     model.to(cfg.train.device)
@@ -192,10 +200,26 @@ if __name__ == "__main__":
         for path in tqdm.tqdm(args.input, disable=not args.output):
             # use PIL, to be consistent with evaluation
             img = read_image(path, format="BGR")
-            start_time = time.time()
-            predictions, visualized_output = demo.run_on_image(
-                img, category_names, args.confidence_threshold
-            )
+            image_shape = img.shape[:2]  # h, w
+            if args.cross_prompt_image is not None:
+                cross_prompt_image = read_image(args.cross_prompt_image[0], format="BGR")
+                cross_image_shape = cross_prompt_image.shape[:2]
+                annotations = annotate_image_with_detectron2(args.cross_prompt_image[0])
+                instances = annotations_to_instances(annotations, cross_image_shape)
+                start_time = time.time()
+                visual_embeds = demo.run_on_image(
+                    cross_prompt_image, category_names, args.confidence_threshold,instances=instances,extract_visual_prompt_mode=True
+                )
+                predictions, visualized_output = demo.run_on_image(
+                    img, category_names, args.confidence_threshold,visual_embeds=visual_embeds
+                )
+            else:
+                annotations = annotate_image_with_detectron2(args.input[0])
+                instances = annotations_to_instances(annotations, image_shape)
+                start_time = time.time()
+                predictions, visualized_output = demo.run_on_image(
+                    img, category_names, args.confidence_threshold,instances=instances
+                )
             logger.info(
                 "{}: {} in {:.2f}s".format(
                     path,

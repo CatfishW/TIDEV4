@@ -57,54 +57,93 @@ class VisualPromptEncoder(nn.Module):
     def _process_feature_map(self, features, batched_input) -> torch.Tensor:
         """Processes feature map."""
         last_layer_feature = features[-1]
-        height, width = last_layer_feature.shape[-2:]
+
+        # Resize the feature map to a fixed resolution (e.g., 640x640)
+        resized_feature = F.interpolate(last_layer_feature, size=(640, 640), mode="bilinear", align_corners=False)
+        resized_height, resized_width = resized_feature.shape[-2:]
 
         # Initialize batch-specific averaged features
         batched_averaged_features = []
 
         for batch_idx, data in enumerate(batched_input):
-            instances = data['instances']  # Corrected 'instance' to 'instances'
+            instances = data['instances']
             gt_boxes = instances.gt_boxes.tensor.clone()  # Use the tensor of bounding boxes
             gt_classes = instances.gt_classes
-            # Compute scaling factors
-            scale_x = width / data['instances'].image_size[1]
-            scale_y = height / data['instances'].image_size[0]
+            original_image_height, original_image_width = data['instances'].image_size
 
-            # Scale the box coordinates according to the feature map resolution
+            # Scale ground-truth boxes to the resized feature map resolution
+            scale_x = resized_width / original_image_width
+            scale_y = resized_height / original_image_height
+
             gt_boxes[:, 0] *= scale_x  # x1
             gt_boxes[:, 2] *= scale_x  # x2
             gt_boxes[:, 1] *= scale_y  # y1
             gt_boxes[:, 3] *= scale_y  # y2
+
+            # Create a mask for positive regions
+            positive_mask = torch.zeros((resized_height, resized_width), dtype=torch.bool, device=resized_feature.device)
+            for box in gt_boxes:
+                x1, y1, x2, y2 = torch.round(box).long()
+                x1, y1 = max(x1, 0), max(y1, 0)
+                x2, y2 = min(x2, resized_width), min(y2, resized_height)
+                positive_mask[y1:y2, x1:x2] = True
 
             # Initialize class-specific feature maps for this batch
             class_feature_map_dict = {cls: [] for cls in range(80)}
 
             # Extract feature map inside each scaled gt_box
             for i, box in enumerate(gt_boxes):
-                x1, y1, x2, y2 = box.int()
+                # Round coordinates to integers for slicing
+                x1, y1, x2, y2 = torch.round(box).long()
 
-                feature_map = last_layer_feature[batch_idx:batch_idx+1, :, y1:y2, x1:x2]
+                # Ensure box coordinates are within bounds
+                x1, y1 = max(x1, 0), max(y1, 0)
+                x2, y2 = min(x2, resized_width), min(y2, resized_height)
 
-                if feature_map.numel() > 0:  # Ensure there are elements to pool
-                    pooled_feature = F.adaptive_avg_pool2d(feature_map, (1, 1)).squeeze()
-                    class_feature_map_dict[gt_classes[i].item()].append(pooled_feature)
+                if x1 < x2 and y1 < y2:  # Ensure the box has a valid area
+                    feature_map = resized_feature[batch_idx:batch_idx+1, :, y1:y2, x1:x2]
+
+                    if feature_map.numel() > 0:  # Ensure there are elements to pool
+                        pooled_feature = F.adaptive_avg_pool2d(feature_map, (1, 1)).squeeze()
+                        class_feature_map_dict[gt_classes[i].item()].append(pooled_feature)
 
             # Average feature maps that belong to the same ground truth class
-            averaged_features = [torch.zeros(last_layer_feature.shape[1], device=last_layer_feature.device) for _ in range(80)]
+            averaged_features = [torch.zeros(resized_feature.shape[1], device=resized_feature.device) for _ in range(80)]
 
             for cls, maps in class_feature_map_dict.items():
                 if maps:
                     averaged_features[cls] = torch.stack(maps).mean(dim=0)
                 else:
-                    # Sample negative feature map from last_layer_feature
-                    random_y = torch.randint(0, height, (1,))
-                    random_x = torch.randint(0, width, (1,))
-                    negative_sample = last_layer_feature[batch_idx:batch_idx+1, :, random_y, random_x].squeeze()
-                    averaged_features[cls] = negative_sample
+                    if self.training:
+                        # Sample negative feature map from regions outside ground-truth boxes
+                        while True:
+                            # Randomly choose a box size between 5x5 and 30x30
+                            negative_height = torch.randint(5, 31, (1,)).item()  # Random height from 5 to 30
+                            negative_width = torch.randint(5, 31, (1,)).item()   # Random width from 5 to 30
+
+                            # Ensure the sampled box fits within the image dimensions
+                            random_y = torch.randint(0, resized_height - negative_height + 1, (1,)).item()
+                            random_x = torch.randint(0, resized_width - negative_width + 1, (1,)).item()
+
+                            # Check if the randomly chosen area overlaps with any positive regions
+                            negative_box_mask = torch.zeros((resized_height, resized_width), dtype=torch.bool, device=resized_feature.device)
+                            negative_box_mask[random_y:random_y+negative_height, random_x:random_x+negative_width] = True
+
+                            if not (positive_mask & negative_box_mask).any():  # No overlap
+                                break
+
+                        # Extract negative feature map
+                        negative_sample = resized_feature[batch_idx:batch_idx+1, :, random_y:random_y+negative_height, random_x:random_x+negative_width].squeeze()
+
+                        # Average the negative feature map to match the required output shape
+                        averaged_features[cls] = F.adaptive_avg_pool2d(negative_sample.unsqueeze(0), (1, 1)).squeeze()
 
             # Add batch-specific averaged features to the list
             batched_averaged_features.append(torch.stack(averaged_features))
 
         # Return batched tensor of averaged features
         return torch.stack(batched_averaged_features)
+
+
+
 

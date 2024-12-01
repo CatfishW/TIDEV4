@@ -86,7 +86,7 @@ class OVDINODemo(object):
         return instances
 
     def run_on_image(
-        self, image, category_names, threshold=0.5, with_segmentation=False
+        self, image, category_names, threshold=0.5, with_segmentation=False,instances=None,extract_visual_prompt_mode=False,visual_embeds=None
     ):
         """
         Args:
@@ -98,7 +98,13 @@ class OVDINODemo(object):
             vis_output (VisImage): the visualized image output.
         """
         vis_output = None
-        predictions = self.predictor(image, category_names)
+        if extract_visual_prompt_mode:
+            predictions = self.predictor(image, category_names,instances,visual_embeds=None,visual_feature_extraction_mode=True)
+            return predictions
+        elif visual_embeds is not None:
+            predictions = self.predictor(image, category_names,instances,visual_embeds=visual_embeds)
+        else:
+            predictions = self.predictor(image, category_names,instances)
         predictions = filter_predictions_with_confidence(predictions, threshold)
         # Convert image from OpenCV BGR format to Matplotlib RGB format.
         image = image[:, :, ::-1]
@@ -146,7 +152,7 @@ class DefaultPredictor:
         self.input_format = img_format
         assert self.input_format in ["RGB", "BGR"], self.input_format
 
-    def __call__(self, original_image, category_names,instances=None):
+    def __call__(self, original_image, category_names,instances=None,visual_embeds=None,visual_feature_extraction_mode=False):
         """
         Args:
             original_image (np.ndarray): an image of shape (H, W, C) (in BGR order).
@@ -171,8 +177,10 @@ class DefaultPredictor:
                 "width": width,
                 "category_names": category_names,
                 "instances": instances,
+                "visual_embeds": visual_embeds,
+                "visual_feature_extraction_mode": visual_feature_extraction_mode,
             }
-            predictions = self.model([inputs])[0]
+            predictions = self.model([inputs])[0] if visual_feature_extraction_mode == False else self.model([inputs])
             return predictions
 
 
