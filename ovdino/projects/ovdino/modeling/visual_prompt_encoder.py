@@ -81,15 +81,15 @@ class VisualPromptEncoder(nn.Module):
             gt_boxes[:, 3] *= scale_y  # y2
 
             # Create a mask for positive regions
-            positive_mask = torch.zeros((resized_height, resized_width), dtype=torch.bool, device=resized_feature.device)
+            #positive_mask = torch.zeros((resized_height, resized_width), dtype=torch.bool, device=resized_feature.device)
             for box in gt_boxes:
                 x1, y1, x2, y2 = torch.round(box).long()
                 x1, y1 = max(x1, 0), max(y1, 0)
                 x2, y2 = min(x2, resized_width), min(y2, resized_height)
-                positive_mask[y1:y2, x1:x2] = True
+                #positive_mask[y1:y2, x1:x2] = True
 
             # Initialize class-specific feature maps for this batch
-            class_feature_map_dict = {cls: [] for cls in range(80)}
+            class_feature_map_dict = {cls: [] for cls in range(599)}
 
             # Extract feature map inside each scaled gt_box
             for i, box in enumerate(gt_boxes):
@@ -108,7 +108,7 @@ class VisualPromptEncoder(nn.Module):
                         class_feature_map_dict[gt_classes[i].item()].append(pooled_feature)
 
             # Average feature maps that belong to the same ground truth class
-            averaged_features = [torch.zeros(resized_feature.shape[1], device=resized_feature.device) for _ in range(80)]
+            averaged_features = [torch.zeros(resized_feature.shape[1], device=resized_feature.device) for _ in range(599)]
             for cls, maps in class_feature_map_dict.items():
                 if maps:
                     averaged_features[cls] = torch.stack(maps).mean(dim=0)

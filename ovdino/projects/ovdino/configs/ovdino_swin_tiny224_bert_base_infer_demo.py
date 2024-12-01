@@ -8,7 +8,7 @@ from .models.ovdino_swin_tiny224_bert_base import model
 # model_root = os.getenv("MODEL_ROOT", "./inits")
 # init_checkpoint = osp.join(model_root, "./swin", "swin_tiny_patch4_window7_224.pth")
 #init_checkpoint = '/root/workspace/ZladWu/OV-DINO/ovdino/ovdino_swint_ogc-coco50.2_lvismv40.1_lvis32.9.pth'
-init_checkpoint ='/root/workspace/ZladWu/OV-DINO/ovdino/wkdrs/ovdino_swin_tiny224_bert_base_24ep_text_visual_hybrid/model_final.pth'
+init_checkpoint ='/root/workspace/ZladWu/OV-DINO/ovdino/wkdrs/ovdino_swin_tiny224_bert_base_24ep_text_visual_hybrid_openimages1500K/model_0004999.pth'
 # get default config
 dataloader = get_config("common/data/custom_ovd.py").dataloader#get_config("common/data/coco_ovd.py").dataloader
 optimizer = get_config("common/optim.py").AdamW
@@ -17,7 +17,7 @@ train = get_config("common/train.py").train
 
 # modify training config
 train.init_checkpoint = init_checkpoint
-train.output_dir = "./wkdrs/ovdino_swin_tiny224_bert_base_24ep_text_visual_hybrid_openimages1500K"
+train.output_dir = "./wkdrs/ovdino_swin_tiny224_bert_base_24ep_text_visual_hybrid_openimages50K"
 
 # max training iterations
 train.max_iter = 90000
@@ -47,7 +47,7 @@ optimizer.params.lr_factor_func = lambda module_name: (
 )
 
 # modify dataloader config
-dataloader.train.num_workers = 16
+dataloader.train.num_workers = 3
 
 # please notice that this is total batch size.
 # surpose you're using 4 gpus for training and the batch size for

@@ -6,7 +6,7 @@ from detrex.config import get_config
 from .models.ovdino_swin_tiny224_bert_base import model
 
 model_root = os.getenv("MODEL_ROOT", "./inits")
-init_checkpoint = osp.join(model_root, "./swin", "swin_tiny_patch4_window7_224.pth")
+init_checkpoint = '/root/workspace/ZladWu/OV-DINO/ovdino/wkdrs/ovdino_swin_tiny224_bert_base_24ep_text_visual_hybrid_openimages1500K/model_0004999.pth'
 
 # get default config
 dataloader = get_config("common/data/custom_ovd.py").dataloader
@@ -22,7 +22,7 @@ train.output_dir = "./wkdrs/ovdino_swin_tiny224_bert_base_24ep_ft_coco"
 
 # max training iterations, 120000 / 32 * 24 = 90000 -> 90000
 train.max_iter = 90000
-train.eval_period = 5000
+train.eval_period = 10000
 train.log_period = 50
 train.checkpointer.period = 5000
 
@@ -51,12 +51,12 @@ optimizer.params.lr_factor_func = lambda module_name: (
 )
 
 # modify dataloader config
-dataloader.train.num_workers = 8
+dataloader.train.num_workers = 6
 
 # please notice that this is total batch size.
 # surpose you're using 4 gpus for training and the batch size for
 # each gpu is 64/4 = 4
-dataloader.train.total_batch_size = 32
+dataloader.train.total_batch_size = 18
 
 # dump the testing results into output_dir for visualization
 dataloader.evaluator.output_dir = train.output_dir

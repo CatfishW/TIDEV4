@@ -2421,8 +2421,14 @@ def _get_custom_instances_meta():
 _PREDEFINED_SPLITS = {
     # image_root, json_file, num_sampled_classes, template
     "custom_train_ovd_unipro": (
-        "OpenImages1500K/data",
-        "OpenImages1500K/labels.json",
+        "OpenImages/data",
+        "OpenImages/labels.json",
+        NUM_CATEGORY,
+        "full",
+    ),
+    "custom_train_ovd": (
+        "OpenImages/data",
+        "OpenImages/labels.json",
         NUM_CATEGORY,
         "full",
     ),
@@ -2430,7 +2436,7 @@ _PREDEFINED_SPLITS = {
         "coco/val2017",
         "coco/annotations/instances_val2017.json",
         80,
-        "full",
+        "identity",
     ),
     # "custom_test_ovd": (
     #     "custom/test",
