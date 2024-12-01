@@ -66,7 +66,6 @@ class VisualPromptEncoder(nn.Module):
             instances = data['instances']  # Corrected 'instance' to 'instances'
             gt_boxes = instances.gt_boxes.tensor.clone()  # Use the tensor of bounding boxes
             gt_classes = instances.gt_classes
-
             # Compute scaling factors
             scale_x = width / data['instances'].image_size[1]
             scale_y = height / data['instances'].image_size[0]

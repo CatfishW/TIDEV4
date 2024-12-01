@@ -146,7 +146,7 @@ class DefaultPredictor:
         self.input_format = img_format
         assert self.input_format in ["RGB", "BGR"], self.input_format
 
-    def __call__(self, original_image, category_names):
+    def __call__(self, original_image, category_names,instances=None):
         """
         Args:
             original_image (np.ndarray): an image of shape (H, W, C) (in BGR order).
@@ -170,6 +170,7 @@ class DefaultPredictor:
                 "height": height,
                 "width": width,
                 "category_names": category_names,
+                "instances": instances,
             }
             predictions = self.model([inputs])[0]
             return predictions
