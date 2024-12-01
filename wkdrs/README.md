@@ -1,0 +1,2 @@
+## Workspace Directory
+bash scripts/demo.sh ./projects/ovdino/configs/ovdino_swin_tiny224_bert_base_infer_demo.py ovdino_swint_ogc-coco50.2_lvismv40.1_lvis32.9.pth 'bus,wheels' demo/imgs/000000001584.jpg ./test.jpg
