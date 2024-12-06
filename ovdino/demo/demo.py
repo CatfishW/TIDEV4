@@ -46,7 +46,8 @@ def get_parser():
     )
     parser.add_argument(
         "--config-file",
-        default="projects/ovdino/configs/ovdino_swin_tiny224_bert_base_infer_demo.py",
+        default="projects/ovdino/configs/tidev4_swin_tiny224_bert_base_infer_demo.py",
+        #default="projects/ovdino/configs/ovdino_swin_tiny224_bert_base_infer_demo.py",
         metavar="FILE",
         help="path to config file",
     )

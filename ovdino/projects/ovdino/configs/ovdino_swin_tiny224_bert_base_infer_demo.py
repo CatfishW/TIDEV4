@@ -8,7 +8,7 @@ from .models.ovdino_swin_tiny224_bert_base import model
 # model_root = os.getenv("MODEL_ROOT", "./inits")
 # init_checkpoint = osp.join(model_root, "./swin", "swin_tiny_patch4_window7_224.pth")
 #init_checkpoint = '/root/workspace/ZladWu/OV-DINO/ovdino/ovdino_swint_ogc-coco50.2_lvismv40.1_lvis32.9.pth'
-init_checkpoint ='/root/workspace/ZladWu/OV-DINO/ovdino/wkdrs/ovdino_swin_tiny224_bert_base_24ep_text_visual_hybrid_openimages50K/model_final.pth'
+init_checkpoint ='model_final.pth'
 # get default config
 dataloader = get_config("common/data/custom_ovd.py").dataloader#get_config("common/data/coco_ovd.py").dataloader
 optimizer = get_config("common/optim.py").AdamW

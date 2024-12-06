@@ -282,6 +282,8 @@ class MultiScaleDeformableAttention(nn.Module):
 
         if value is None:
             value = query
+        if (query_pos is not None) and (query_pos.shape[0] == 0):
+            query_pos = None
 
         if identity is None:
             identity = query

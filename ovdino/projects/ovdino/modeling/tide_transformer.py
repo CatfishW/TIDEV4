@@ -102,6 +102,10 @@ class GatedMultiheadAttention(nn.Module):
         """
         if identity is None:
             identity = query
+        if query_pos is not None and query_pos.shape[0] == 0:
+            query_pos = None
+        if key_pos is not None and key_pos.shape[0] == 0:
+            key_pos = None
 
         if query_pos is not None:
             query = query + query_pos
@@ -488,7 +492,7 @@ class TIDETransformerDecoder(TransformerLayerSequence):
                         num_heads=num_heads,
                         dropout=attn_dropout,
                         batch_first=True,
-                        num_levels=num_feature_levels,
+                        num_levels=num_feature_levels-1,
                     ),
                     GatedMultiheadAttention(
                         embed_dim=embed_dim,
@@ -566,10 +570,15 @@ class TIDETransformerDecoder(TransformerLayerSequence):
         intermediate_reference_points = []
         for layer_idx, layer in enumerate(self.layers):
             if reference_points.shape[-1] == 4:
-                reference_points_input = (
-                    reference_points[:, :, None]
-                    * torch.cat([valid_ratios, valid_ratios], -1)[:, None]
-                )
+                try:
+                    reference_points_input = (
+                        reference_points[:, :, None]
+                        * torch.cat([valid_ratios, valid_ratios], -1)[:, None]
+                    )
+                except:
+                    reference_points_input = (
+                        reference_points[:, :, None]
+                    )
             else:
                 assert reference_points.shape[-1] == 2
                 reference_points_input = (
@@ -712,7 +721,7 @@ class TIDETransformer(nn.Module):
         # [b, l, c]
         feat_flatten = torch.concat(feat_flatten, 1)
         level_start_index.pop()
-        return feat_flatten
+        return feat_flatten,level_start_index
     def gen_encoder_output_proposals(self, memory, memory_padding_mask, spatial_shapes):
         N, S, C = memory.shape
         proposals = []
@@ -820,7 +829,8 @@ class TIDETransformer(nn.Module):
             zip(multi_level_feats, multi_level_masks, multi_level_pos_embeds)
         ):
             bs, c, h, w = feat.shape
-            proj_feats.append(feat)
+            if lvl !=0:
+                proj_feats.append(feat)
             spatial_shape = (h, w)
             spatial_shapes.append(spatial_shape)
 
@@ -839,14 +849,14 @@ class TIDETransformer(nn.Module):
             spatial_shapes, dtype=torch.long, device=feat_flatten.device
         )
         level_start_index = torch.cat(
-            (spatial_shapes.new_zeros((1,)), spatial_shapes.prod(1).cumsum(0)[:-1])
+            (spatial_shapes[1:].new_zeros((1,)), spatial_shapes[1:].prod(1).cumsum(0)[:-1])
         )
         valid_ratios = torch.stack(
-            [self.get_valid_ratio(m) for m in multi_level_masks], 1
+            [self.get_valid_ratio(m) for m in multi_level_masks[1:]], 1
         )
 
         reference_points = self.get_reference_points(
-            spatial_shapes, valid_ratios, device=feat.device
+            spatial_shapes[1:], valid_ratios, device=feat.device
         )
 
         memory = self.encoder(
@@ -869,7 +879,7 @@ class TIDETransformer(nn.Module):
             feat_low = proj_feats[idx - 1]
             feat_high = self.lateral_convs[len(self.in_channels) - 1 - idx](feat_high)
             inner_outs[0] = feat_high
-            upsample_feat = F.interpolate(feat_high, scale_factor=2., mode='nearest')
+            upsample_feat = F.interpolate(feat_high, size=feat_low.shape[-2:], mode="nearest")
             inner_out = self.fpn_blocks[len(self.in_channels)-1-idx](torch.concat([upsample_feat, feat_low], dim=1))
             inner_outs.insert(0, inner_out)
 
@@ -880,10 +890,10 @@ class TIDETransformer(nn.Module):
             downsample_feat = self.downsample_convs[idx](feat_low)
             out = self.pan_blocks[idx](torch.concat([downsample_feat, feat_height], dim=1))
             outs.append(out)
-        memory = self._get_encoder_output(outs)
-
+        memory,_ = self._get_encoder_output(outs)
+        mask_flatten = torch.cat(mask_flatten[1:], 1)
         output_memory, output_proposals = self.gen_encoder_output_proposals(
-            memory, mask_flatten, spatial_shapes
+            memory, mask_flatten, spatial_shapes[1:]
         )
         # output_memory: bs, num_tokens, c
         # output_proposals: bs, num_tokens, 4. unsigmoided.
@@ -903,9 +913,11 @@ class TIDETransformer(nn.Module):
         topk_proposals = torch.topk(enc_outputs_class.max(-1)[0], topk, dim=1)[1]
 
         # extract region proposal boxes
-        topk_coords_unact = torch.gather(
-            enc_outputs_coord_unact, 1, topk_proposals.unsqueeze(-1).repeat(1, 1, 4)
-        )  # unsigmoided.
+        # topk_coords_unact = torch.gather(
+        #     enc_outputs_coord_unact, 1, topk_proposals.unsqueeze(-1).repeat(1, 1, self.num_feature_levels-1)
+        # )  # unsigmoided.
+        topk_coords_unact = enc_outputs_coord_unact.gather(dim=1, \
+            index=topk_proposals.unsqueeze(-1).repeat(1, 1, enc_outputs_coord_unact.shape[-1]))
         reference_points = topk_coords_unact.detach().sigmoid()
         if query_embed[1] is not None:
             reference_points = torch.cat(
@@ -930,12 +942,12 @@ class TIDETransformer(nn.Module):
             key=memory,  # bs, num_tokens, embed_dims
             value=memory,  # bs, num_tokens, embed_dims
             object_embedding=target_unact,
-            query_pos=None,
+            query_pos=None,  # bs, num_queries, embed_dims
             key_padding_mask=mask_flatten,  # bs, num_tokens
             reference_points=reference_points,  # num_queries, 4
-            spatial_shapes=spatial_shapes,  # nlvl, 2
+            spatial_shapes=spatial_shapes[1:],  # nlvl, 2
             level_start_index=level_start_index,  # nlvl
-            valid_ratios=valid_ratios,  # bs, nlvl, 2
+            valid_ratios=valid_ratios,  # bs, nlvl, 
             attn_masks=attn_masks,
             **kwargs,
         )

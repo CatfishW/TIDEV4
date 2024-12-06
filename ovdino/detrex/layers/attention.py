@@ -114,6 +114,11 @@ class MultiheadAttention(nn.Module):
             value = key
         if identity is None:
             identity = query
+        try:
+            if query_pos.shape[0] == 0:
+                query_pos = key_pos = None
+        except:
+            ...
         if key_pos is None:
             if query_pos is not None:
                 # use query_pos if key_pos is not available
