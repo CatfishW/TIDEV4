@@ -26,7 +26,7 @@ dataloader = OmegaConf.create()
 # }
 # 2. Register custom train dataset.
 # register_custom_ovd_instances(
-#     "custom_train_ovd_unipro",  # dataset_name
+#     "custom_train_ovd_unipro",  # dataset_namelan
 #     meta_info,
 #     "/path/to/train.json",  # annotations_json_file
 #     "/path/to/train/images",  # image_root

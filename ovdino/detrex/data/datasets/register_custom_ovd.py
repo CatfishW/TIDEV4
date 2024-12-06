@@ -1,7 +1,8 @@
 import os
 
 from .custom_ovd import register_custom_ovd_instances
-
+from.coco_ovd import register_coco_ovd_instances
+from detectron2.data.datasets.builtin_meta import _get_coco_instances_meta
 
 CUSTOM_CATEGORIES = [
  {
@@ -2436,6 +2437,12 @@ _PREDEFINED_SPLITS = {
         "coco/val2017",
         "coco/annotations/instances_val2017.json",
         80,
+        "full",
+    ),
+    "custom_val_ovd": (
+        "coco/val2017",
+        "coco/annotations/instances_val2017.json",
+        80,
         "identity",
     ),
     # "custom_test_ovd": (
@@ -2455,15 +2462,26 @@ def register_all_custom_instances(root):
         template,
     ) in _PREDEFINED_SPLITS.items():
         # Assume pre-defined datasets live in `./datas`.
-        register_custom_ovd_instances(
-            key,
-            _get_custom_instances_meta(),
-            os.path.join(root, json_file) if "://" not in json_file else json_file,
-            os.path.join(root, image_root),
-            num_sampled_classes,
-            template=template,
-            test_mode=True if "val" in key else False,
-        )
+        if 'coco' not in key:
+            register_custom_ovd_instances(
+                key,
+                _get_custom_instances_meta(),
+                os.path.join(root, json_file) if "://" not in json_file else json_file,
+                os.path.join(root, image_root),
+                num_sampled_classes,
+                template=template,
+                test_mode=True if "val" in key else False,
+            )
+        else:
+            register_coco_ovd_instances(
+                key,
+                _get_coco_instances_meta(),
+                os.path.join(root, json_file) if "://" not in json_file else json_file,
+                os.path.join(root, image_root),
+                num_sampled_classes,
+                template=template,
+                test_mode=True if "val" in key else False,
+            )
 
 
 _root = os.getenv("DETECTRON2_DATASETS", "datasets")

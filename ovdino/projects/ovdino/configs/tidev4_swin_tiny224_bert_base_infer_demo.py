@@ -3,7 +3,7 @@ import os.path as osp
 
 from detrex.config import get_config
 
-from .models.ovdino_swin_tiny224_bert_base import model
+from .models.tidev4_swin_tiny224_bert_base import model
 
 # model_root = os.getenv("MODEL_ROOT", "./inits")
 # init_checkpoint = osp.join(model_root, "./swin", "swin_tiny_patch4_window7_224.pth")
