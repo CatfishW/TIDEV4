@@ -289,7 +289,8 @@ def do_train(args, cfg):
 
 
 def main(args):
-    cfg = LazyConfig.load("/root/workspace/ZladWu/OV-DINO/ovdino/projects/ovdino/configs/ovdino_swin_tiny224_bert_base_infer_demo.py")
+    #cfg = LazyConfig.load("/root/workspace/ZladWu/OV-DINO/ovdino/projects/ovdino/configs/ovdino_swin_tiny224_bert_base_infer_demo.py")
+    cfg = LazyConfig.load("/root/workspace/ZladWu/OV-DINO/ovdino/projects/ovdino/configs/tidev4_swin_tiny224_bert_base_infer_demo.py")
     cfg = LazyConfig.apply_overrides(cfg, args.opts)
     default_setup(cfg, args)
 

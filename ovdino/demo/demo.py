@@ -155,9 +155,9 @@ if __name__ == "__main__":
     cfg = setup(args)
     #args.category_names = "car tree building"
     args.input = ["demo/imgs/000000001584.jpg"]
-    args.cross_prompt_image = ["demo/imgs/bus_prompt4.jpg"]
+    args.cross_prompt_image = None#["demo/imgs/bus_prompt4.jpg"]
     args.output = "demo/imgs/output"
-    category_names = None#['car','bus','person','dog']
+    category_names = ['car','bus','person','dog']
     model = instantiate(cfg.model)
     model.to(cfg.train.device)
     checkpointer = DetectionCheckpointer(model)
@@ -245,7 +245,7 @@ if __name__ == "__main__":
                 visualized_output.save(out_filename)
             else:
                 cv2.namedWindow(WINDOW_NAME, cv2.WINDOW_NORMAL)
-                cv2.imshow(WINDOW_NAME, visualized_output.get_image()[:, :, ::-1])
+                #cv2.imshow(WINDOW_NAME, visualized_output.get_image()[:, :, ::-1])
                 if cv2.waitKey(0) == 27:
                     break  # esc to quit
     elif args.webcam:

@@ -14,9 +14,10 @@ from projects.ovdino.modeling import (
     TIDETransformer,
     TIDETransformerDecoder,
     TIDETransformerEncoder,
+    TIDEV4
 )
 
-model = L(OVDINO)(
+model = L(TIDEV4)(
     backbone=L(SwinTransformer)(
         pretrain_img_size=224,
         embed_dim=96,
