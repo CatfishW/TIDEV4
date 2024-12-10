@@ -185,7 +185,7 @@ class TIDEV4(nn.Module):
                             dictionnaries containing the two above keys for each decoder layer.
         """
         # store the previous state of the model.
-        visual_text_switcher = 1#random.randint(0, 1)
+        visual_text_switcher = random.randint(0, 1)
         last_state = self.last_state
         images, names = self.preprocess_image_and_name(batched_inputs)
 

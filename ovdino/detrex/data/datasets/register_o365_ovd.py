@@ -373,14 +373,14 @@ OBEJECTS365V1_CATEGORIES = [
 _PREDEFINED_SPLITS = {
     # image_root, json_file, num_sampled_classes, template
     "o365v1_train_ovd_unipro": (
-        "o365/train",
-        "o365/annotations/objects365_train.json",
+        "OBJ365/train",
+        "OBJ365/annotations/objects365_train.json",
         150,
         "full",
     ),
     "o365v1_train_ovd": (
-        "o365/train",
-        "o365/annotations/objects365_train.json",
+        "OBJ365/train",
+        "OBJ365/annotations/objects365_train.json",
         150,
         "identity",
     ),
@@ -390,7 +390,7 @@ _PREDEFINED_SPLITS = {
 def _get_objects365_instances_meta():
     OBEJECTS365_CATEGORIES = OBEJECTS365V1_CATEGORIES
 
-    thing_ids = [k["id"] - 1 for k in OBEJECTS365_CATEGORIES]
+    thing_ids = [k["id"] for k in OBEJECTS365_CATEGORIES]
     assert len(thing_ids) == 365, len(thing_ids)
     # Mapping from the incontiguous Objects365 category id to an id in [0, 364]
     thing_dataset_id_to_contiguous_id = {k: i for i, k in enumerate(thing_ids)}
@@ -400,7 +400,6 @@ def _get_objects365_instances_meta():
         "thing_classes": thing_classes,
     }
     return ret
-
 
 def register_all_objects365_instances(root):
     for key, (

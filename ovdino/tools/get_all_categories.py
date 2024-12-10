@@ -21,7 +21,7 @@ def get_categories_dicts(annotation_file):
   return category_dicts
 
 # Example usage
-annotation_file = '/root/workspace/ZladWu/OV-DINO/ovdino/datasets/OpenImages1500K/labels.json'  # Replace with your file path
+annotation_file = './datasets/OBJ365/annotations/objects365_train.json'  # Replace with your file path
 category_dicts = get_categories_dicts(annotation_file)
 #save as json
 with open('category_dicts.json', 'w') as f:

@@ -107,7 +107,7 @@ Category ids in annotations are not in [1, #categories]! We'll apply a mapping f
                 )
         # the cat_ids objects365 of json["categories"] are in [1, 365],
         # while cat_ids of annotations are [0, 364].
-        id_map = {v - 1: i for i, v in enumerate(cat_ids)}
+        id_map = {v : i for i, v in enumerate(cat_ids)}
         id2name = {
             i: c["name"] for i, c in enumerate(sorted(cats, key=lambda x: x["id"]))
         }

@@ -59,7 +59,7 @@ class VisualPromptEncoder(nn.Module):
         last_layer_feature = features[-1]
 
         # Resize the feature map to a fixed resolution (e.g., 100x100)
-        resized_feature = F.interpolate(last_layer_feature, size=(40,40), mode="bilinear", align_corners=False)
+        resized_feature = F.interpolate(last_layer_feature, size=(50,50), mode="bilinear", align_corners=False)
         resized_height, resized_width = resized_feature.shape[-2:]
 
         # Precompute scales for box resizing
@@ -93,7 +93,7 @@ class VisualPromptEncoder(nn.Module):
             gt_classes = all_gt_classes[batch_idx]
 
             # Initialize class-specific feature map dictionary
-            class_feature_map_dict = {cls: [] for cls in range(599)}
+            class_feature_map_dict = {cls: [] for cls in range(150)}
 
             for i, box in enumerate(gt_boxes):
                 # Round and clamp box coordinates
@@ -108,7 +108,7 @@ class VisualPromptEncoder(nn.Module):
                         class_feature_map_dict[gt_classes[i].item()].append(pooled_feature)
 
             # Compute averaged features per class
-            averaged_features = torch.zeros((599, resized_feature.shape[1]), device=resized_feature.device)
+            averaged_features = torch.zeros((150, resized_feature.shape[1]), device=resized_feature.device)
             for cls, maps in class_feature_map_dict.items():
                 if maps:
                     averaged_features[cls] = torch.stack(maps).mean(dim=0)
