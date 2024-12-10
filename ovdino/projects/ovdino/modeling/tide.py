@@ -185,7 +185,7 @@ class TIDEV4(nn.Module):
                             dictionnaries containing the two above keys for each decoder layer.
         """
         # store the previous state of the model.
-        visual_text_switcher = random.randint(0, 1)
+        visual_text_switcher = 1#random.randint(0, 1)
         last_state = self.last_state
         images, names = self.preprocess_image_and_name(batched_inputs)
 
@@ -232,7 +232,7 @@ class TIDEV4(nn.Module):
         elif names[0] is None:
             print('No Text Categories Names Found, using Visual Embeddings')
             text_embed = None
-            visual_text_switcher = 1
+            visual_text_switcher = 0
         else:
             self.last_state = "train"
             text_embed = self.language_backbone(names)
@@ -241,10 +241,12 @@ class TIDEV4(nn.Module):
         if num_classes !=0:
             text_embed = text_embed.view(batch_size, num_classes, -1)
         #if there are no instances in batched_inputs
-        if self.training:
+        if self.training and visual_text_switcher == 0:
             visual_embed = self.visual_prompt_encoder._process_feature_map([features['p3']], batched_inputs)
+        elif self.training and visual_text_switcher == 1:
+            pass
         elif not self.training and names[0] is not None:
-            visual_text_switcher = 1
+            visual_text_switcher = 1    
         elif not self.training and names[0] is None and batched_inputs[0].get("instances", None) is not None:
             visual_text_switcher = 0
             visual_embed = self.visual_prompt_encoder._process_feature_map([features['p3']], batched_inputs)
