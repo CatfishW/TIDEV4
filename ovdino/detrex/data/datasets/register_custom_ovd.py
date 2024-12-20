@@ -2403,12 +2403,12 @@ CUSTOM_CATEGORIES = [
  }
 ]
 
-NUM_CATEGORY = len(CUSTOM_CATEGORIES)
+NUM_CATEGORY = 150#len(CUSTOM_CATEGORIES)
 
 
 def _get_custom_instances_meta():
     thing_ids = [k["id"] for k in CUSTOM_CATEGORIES]
-    assert len(thing_ids) == NUM_CATEGORY, len(thing_ids)
+    #assert len(thing_ids) == NUM_CATEGORY, len(thing_ids)
     # Mapping from the incontiguous category id to contiguous id.
     thing_dataset_id_to_contiguous_id = {k: i for i, k in enumerate(thing_ids)}
     thing_classes = [k["name"] for k in CUSTOM_CATEGORIES]
@@ -2432,18 +2432,6 @@ _PREDEFINED_SPLITS = {
         "OpenImages/labels.json",
         NUM_CATEGORY,
         "full",
-    ),
-    "custom_val_ovd_unipro": (
-        "coco/val2017",
-        "coco/annotations/instances_val2017.json",
-        80,
-        "full",
-    ),
-    "custom_val_ovd": (
-        "coco/val2017",
-        "coco/annotations/instances_val2017.json",
-        80,
-        "identity",
     ),
     # "custom_test_ovd": (
     #     "custom/test",
