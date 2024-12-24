@@ -17,7 +17,7 @@ train = get_config("common/train.py").train
 
 # modify training config
 train.init_checkpoint = init_checkpoint
-train.output_dir = "./wkdrs/tidev4_swin_tiny224_bert_base_24ep_text_visual_hybrid_OBJ365"
+train.output_dir = "./wkdrs/tidev4_swin_tiny224_bert_base_24ep_text_visual_hybrid_OBJ365_OpenImages"
 
 # max training iterations
 train.max_iter = 225000
@@ -42,7 +42,7 @@ model.num_classes = 150
 
 
 # modify optimizer config
-optimizer.lr = 1e-4
+optimizer.lr = 1e-5
 optimizer.betas = (0.9, 0.999)
 optimizer.weight_decay = 1e-4
 optimizer.params.lr_factor_func = lambda module_name: (

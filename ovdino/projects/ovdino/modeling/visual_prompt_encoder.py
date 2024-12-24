@@ -9,6 +9,7 @@ from detrex.layers import (
 )
 from .positional_encoding import PositionEmbeddingRandom
 import torch.nn.functional as F
+import random
 class VisualPromptEncoder(nn.Module):
     def __init__(self):
         super().__init__()
@@ -111,7 +112,11 @@ class VisualPromptEncoder(nn.Module):
             averaged_features = torch.zeros((150, resized_feature.shape[1]), device=resized_feature.device)
             for cls, maps in class_feature_map_dict.items():
                 if maps:
-                    averaged_features[cls] = torch.stack(maps).mean(dim=0)
+                    try:
+                        n = random.randint(1,len(maps)-1) if len(maps) > 1 else 1
+                        averaged_features[cls] = torch.stack(maps[:-n]).mean(dim=0)  # Drop the last n elements
+                    except:
+                        averaged_features[cls] = torch.stack(maps).mean(dim=0)
                 elif self.training:
                     # Sample negative features
                     random_y = torch.randint(0, resized_height, (1,))
