@@ -8,9 +8,9 @@ from .models.tidev4_swin_tiny224_bert_base import model
 # model_root = os.getenv("MODEL_ROOT", "./inits")
 # init_checkpoint = osp.join(model_root, "./swin", "swin_tiny_patch4_window7_224.pth")
 #init_checkpoint = '/root/workspace/ZladWu/OV-DINO/ovdino/ovdino_swint_ogc-coco50.2_lvismv40.1_lvis32.9.pth'
-init_checkpoint ='./wkdrs/tidev4_swin_tiny224_bert_base_24ep_text_openimages50K/model_0039999.pth'
+init_checkpoint ='./tidev4_obj365_op_179999.pth'
 # get default config
-dataloader = get_config("common/data/o365_ovd.py").dataloader#get_config("common/data/coco_ovd.py").dataloader
+dataloader = get_config("common/data/coco_ovd.py").dataloader#get_config("common/data/coco_ovd.py").dataloader
 optimizer = get_config("common/optim.py").AdamW
 lr_multiplier = get_config("common/coco_schedule.py").lr_multiplier_12ep
 train = get_config("common/train.py").train

@@ -290,7 +290,7 @@ def do_train(args, cfg):
 
 def main(args):
     #cfg = LazyConfig.load("/root/workspace/ZladWu/OV-DINO/ovdino/projects/ovdino/configs/ovdino_swin_tiny224_bert_base_infer_demo.py")
-    cfg = LazyConfig.load("/root/workspace/ZladWu/OV-DINO/ovdino/projects/ovdino/configs/tidev4_swin_tiny224_bert_base_infer_demo.py")
+    cfg = LazyConfig.load("projects/ovdino/configs/tidev4_swin_tiny224_bert_base_infer_demo.py")
     cfg = LazyConfig.apply_overrides(cfg, args.opts)
     default_setup(cfg, args)
 
@@ -329,7 +329,7 @@ if __name__ == "__main__":
     setup_dist_args(args)
     launch(
         main,
-        3,
+        1,
         num_machines=1,
         machine_rank=0,
         dist_url=args.dist_url,

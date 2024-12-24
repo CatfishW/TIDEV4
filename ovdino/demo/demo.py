@@ -114,7 +114,7 @@ def get_parser():
     parser.add_argument(
         "--confidence-threshold",
         type=float,
-        default=0.39,
+        default=0.32,
         help="Minimum score for instance predictions to be shown",
     )
     parser.add_argument(
@@ -154,10 +154,10 @@ if __name__ == "__main__":
 
     cfg = setup(args)
     #args.category_names = "car tree building"
-    args.input = ["demo/imgs/000000001584.jpg"]
-    args.cross_prompt_image = None#["demo/imgs/bus_prompt4.jpg"]
+    args.input = ["demo/imgs/01016.jpg"]
+    args.cross_prompt_image = ["demo/imgs/01013.jpg"]
     args.output = "demo/imgs/output"
-    category_names = ['car','bus','person','dog']
+    category_names = None#['car','bus','person','dog',"phone","human head","helmet","sneaker","shoes","some workers","a photo of a person"]
     model = instantiate(cfg.model)
     model.to(cfg.train.device)
     checkpointer = DetectionCheckpointer(model)

@@ -59,7 +59,7 @@ class VisualPromptEncoder(nn.Module):
         last_layer_feature = features[-1]
 
         # Resize the feature map to a fixed resolution (e.g., 100x100)
-        resized_feature = F.interpolate(last_layer_feature, size=(50,50), mode="bilinear", align_corners=False)
+        resized_feature = F.interpolate(last_layer_feature, size=(64,64), mode="bilinear", align_corners=False)
         resized_height, resized_width = resized_feature.shape[-2:]
 
         # Precompute scales for box resizing

@@ -2,7 +2,6 @@ import cv2
 import json
 import random
 from detectron2.structures import BoxMode
-
 def annotate_image_with_detectron2(image_path):
     """
     Allows user to crop an image, input category ID, and outputs the annotation data

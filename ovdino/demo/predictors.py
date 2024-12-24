@@ -8,7 +8,7 @@ import numpy as np
 import torch
 from detectron2.data import MetadataCatalog
 from detectron2.utils.visualizer import ColorMode, Visualizer
-
+from thop import profile, clever_format
 
 def filter_predictions_with_confidence(predictions, confidence_threshold=0.5):
     if "instances" in predictions:
@@ -181,6 +181,11 @@ class DefaultPredictor:
                 "visual_feature_extraction_mode": visual_feature_extraction_mode,
             }
             predictions = self.model([inputs])[0] if visual_feature_extraction_mode == False else self.model([inputs])
+            #print model number of parameters and FLOPs
+            # flops, params = profile(self.model, inputs=([inputs],))
+            # flops, params = clever_format([flops, params], "%.3f")
+            # print("Model FLOPs: ", flops)
+            # print("Model Params: ", params)
             return predictions
 
 
